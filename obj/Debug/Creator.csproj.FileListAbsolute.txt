@@ -1,0 +1,5 @@
+D:\Creator\bin\Creator.dll
+D:\Creator\bin\Creator.pdb
+D:\Creator\obj\Debug\ResolveAssemblyReference.cache
+D:\Creator\obj\Debug\Creator.dll
+D:\Creator\obj\Debug\Creator.pdb

@@ -1,0 +1,209 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Text;
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
+using <@nmSistema@>.Entity;
+
+namespace <@nmSistema@>.Base
+{
+    public class BaseAccess
+    {
+        private static string getConnectionString()
+        {
+            return ConfigurationManager.ConnectionStrings["SQLConnection"].ConnectionString;
+        }
+
+	       public static bool AutenticaUsuario(string cdLogin, string pwSenha, ref string msg)
+        {
+            bool boOk = false;
+            SqlDataReader dr = null;
+            SqlConnection conn = null;
+            SqlCommand cmd = null;
+            try
+            {
+                if (cdLogin != "" && pwSenha != "")
+                {
+                    string connString = getConnectionString();
+                    conn = new SqlConnection(connString);
+                    cmd = conn.CreateCommand();
+
+                    cmd.CommandText += " SELECT                 ";
+                    cmd.CommandText += "        cd_login,       ";
+                    cmd.CommandText += "        pw_senha,       ";
+                    cmd.CommandText += "        nm_usuario,     ";
+                    cmd.CommandText += "        ct_privilegio      ";
+                    cmd.CommandText += " FROM tUsuario          ";
+
+                    cmd.CommandText += " WHERE cd_login = @cd_login AND pw_senha = @pw_senha ";
+
+                    cmd.Parameters.Add(new SqlParameter("@cd_login", SqlDbType.VarChar, 20));
+                    cmd.Parameters["@cd_login"].Value = cdLogin;
+
+                    cmd.Parameters.Add(new SqlParameter("@pw_senha", SqlDbType.VarChar, 24));
+                    cmd.Parameters["@pw_senha"].Value = pwSenha;
+
+                    conn.Open();
+
+                    dr = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
+
+                    if (dr.Read())
+                    {
+                        boOk = true;
+                    }
+
+                    conn.Close();
+                }
+                else
+                {
+                    boOk = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                boOk = false;
+                msg = ex.Message;
+            }
+            finally
+            {
+                if (cmd != null)
+                {
+                    cmd.Dispose();
+                }
+
+                if (conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+            }
+
+            return boOk;
+        }
+		<@TableBegin@>
+        public static DataSet Lista<@Table@>(<@QueryFields@>)
+        {
+            DataSet ds = new DataSet();
+
+            SqlConnection conn = null;
+            SqlDataAdapter da = null;
+            SqlCommand cmd = null;
+            try
+            {
+                string connString = getConnectionString();
+                conn = new SqlConnection(connString);
+                cmd = conn.CreateCommand();
+		
+		<@CommandTextSelect@>
+
+		<@VerifiedQueryFields@>
+
+                conn.Open();
+                da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+                conn.Close();
+            }
+            catch (Exception ex)
+            {
+                ds = null;
+                //deErro = ex.Message;
+            }
+            finally
+            {
+                if (cmd != null)
+                {
+                    cmd.Dispose();
+                }
+
+                if (conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+            }
+
+            return ds;
+        }
+        public static string Atualiza<@Table@>(<@Table@> <@Table@>, string operacao)
+        {
+            SqlConnection conn = null;
+            SqlCommand cmd;
+            bool wOk = false;
+            string retorno = "";
+            try
+            {
+                string connString = getConnectionString(); 
+                conn = new SqlConnection(connString);
+                conn.Open();
+                cmd = conn.CreateCommand();
+
+                switch (operacao)
+                {
+                    case "INC":
+
+                        <@CommandTextInsert@>break;
+
+                    case "ALT":
+
+                        <@CommandTextUpdate@>break;
+
+                    case "EXC":
+
+                        <@CommandTextDelete@>break;
+                }
+
+<@VerifiedFields@>
+            }
+
+            catch (Exception ex)
+            {
+                conn.Close();
+                retorno = ex.Message;
+            }
+            return retorno;
+        }
+		<@TableEnd@>
+
+        private static bool RetornaSelect(string deTextoQuery)
+        {
+            bool wRet;
+            SqlConnection conn;
+            SqlDataReader dr = null;
+            SqlCommand cmd;
+
+            string connString = getConnectionString();
+            conn = new SqlConnection(connString);
+            try
+            {
+                cmd = conn.CreateCommand();
+                cmd.Parameters.Clear();
+
+                cmd.CommandText = deTextoQuery;
+
+                conn.Open();
+
+                dr = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
+
+                if (dr.Read())
+                {
+                    wRet = true; // Retornou registro true
+                }
+                else
+                {
+                    wRet = false;
+                }
+
+                conn.Close();
+            }
+            catch (Exception ex)
+            {
+                conn.Close();
+                wRet = false;
+            }
+            return wRet;
+        }
+    }
+}

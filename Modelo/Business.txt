@@ -1,0 +1,60 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Data;
+using <@nmSistema@>.Entity;
+using <@nmSistema@>.Base;
+
+namespace <@nmSistema@>.Business
+{
+    public class BusinessAccess
+    {
+        public static bool AutenticaUsuario(string cdLogin, string pwSenha, ref string msg)
+        {
+            bool boOk = false;
+            try
+            {
+                boOk = BaseAccess.AutenticaUsuario(cdLogin, pwSenha, ref msg);
+            }
+            catch (Exception ex)
+            {
+                boOk = false;
+                msg = (msg == "" ? ex.Message : msg + "\n" + ex.Message);
+            }
+            return boOk;
+        }
+		<@TableBegin@>
+        public static DataSet Lista<@Table@>(<@QueryFields@>)
+        {
+            DataSet ds = new DataSet();
+            //<@Table@> arr = new <@Table@>();
+            //List<<@Table@>> lst = new List<<@Table@>>();
+            try
+            {
+                ds = BaseAccess.Lista<@Table@>(<@Campos@>);
+                //lst = arr.ToList(ds);
+            }
+            catch (Exception ex)
+            {
+				ds = null;
+                //lst = new List<<@Table@>>();
+            }
+            return ds;
+        }
+        public static string Atualiza<@Table@>(<@Table@> <@Table@>, string operacao)
+        {
+            string retorno = "";
+            try
+            {
+                retorno = BaseAccess.Atualiza<@Table@>(<@Table@>, operacao);
+            }
+            catch (Exception ex)
+            {
+                retorno = ex.Message;
+            }
+            return retorno;
+        }
+		<@TableEnd@>
+    }
+}
